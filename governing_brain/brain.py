@@ -1,4 +1,18 @@
+"""
+brain.py
+
+Central orchestration unit for behavioral governance decisions.
+
+Responsibilities:
+- Invoke policy router
+- Translate strategy into governance directives
+- Produce auditable explanations
+
+This module contains NO policy logic.
+"""
+
 from datetime import datetime
+from typing import Tuple
 
 from governing_brain.state_model import BehavioralState
 from governing_brain.policies.router import select_strategy
@@ -6,12 +20,15 @@ from governing_brain.outputs import GovernanceDirective
 from governing_brain.explanations import ExplanationRecord
 from governing_brain.strategies import Strategy
 
+
 class GoverningBrain:
     """
     Central orchestration unit for behavioral governance decisions.
     """
 
-    def decide(self, state: BehavioralState) -> tuple[GovernanceDirective, ExplanationRecord]:
+    def decide(
+        self, state: BehavioralState
+    ) -> Tuple[GovernanceDirective, ExplanationRecord]:
         """
         Executes one governance decision cycle.
         """
@@ -22,6 +39,11 @@ class GoverningBrain:
         explanation = self._build_explanation(strategy, state)
 
         return directive, explanation
+
+    # =========================================================
+    # Directive Construction
+    # =========================================================
+
     def _build_directive(self, strategy: Strategy) -> GovernanceDirective:
         """
         Builds abstract governance directives based on strategy.
@@ -47,7 +69,7 @@ class GoverningBrain:
                 explanation_required=True,
             )
 
-        # Default for STABILIZATION, COMPENSATION, STRATEGIC_PAUSE (for now)
+        # Default: STABILIZATION, COMPENSATION, STRATEGIC_PAUSE
         return GovernanceDirective(
             strategy=strategy,
             required_strictness=0.5,
@@ -56,24 +78,43 @@ class GoverningBrain:
             recovery_allowed=True,
             explanation_required=False,
         )
+
+    # =========================================================
+    # Explanation Construction
+    # =========================================================
+
     def _build_explanation(
         self, strategy: Strategy, state: BehavioralState
     ) -> ExplanationRecord:
         """
-        Builds a structured explanation for the decision.
+        Builds an auditable explanation record for the decision.
         """
 
+        state_snapshot = {
+            "discipline_level": state.discipline_level,
+            "failure_risk": state.failure_risk,
+            "fatigue_index": state.fatigue_index,
+            "avoidance_tendency": state.avoidance_tendency,
+            "context_importance": state.context_importance,
+            "momentum_trend": state.momentum_trend,
+        }
+
+        state_summary = (
+            f"failure_risk={state.failure_risk}, "
+            f"fatigue_index={state.fatigue_index}, "
+            f"avoidance_tendency={state.avoidance_tendency}, "
+            f"context_importance={state.context_importance}, "
+            f"discipline_level={state.discipline_level}, "
+            f"momentum_trend={state.momentum_trend}"
+        )
+
         return ExplanationRecord(
-            timestamp=datetime.utcnow(),
-            trigger="Policy evaluation based on current behavioral state",
-            state_summary=(
-                f"failure_risk={state.failure_risk}, "
-                f"fatigue_index={state.fatigue_index}, "
-                f"avoidance_tendency={state.avoidance_tendency}, "
-                f"context_importance={state.context_importance}"
-            ),
+            trigger="Policy evaluation based on behavioral state",
             strategy_selected=strategy,
+            state_snapshot=state_snapshot,
+            state_summary=state_summary,
             action_summary=f"Selected {strategy.value} strategy",
             expected_outcome="Improved long-term behavioral stability",
             reversal_condition="State variables return to safe ranges",
+            decision_confidence=1.0,
         )

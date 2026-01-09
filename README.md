@@ -28,3 +28,24 @@ without modifying the core logic.
 
 ## License
 MIT (or Academic Use Only)
+
+
+AlarmSM
+|_______governing_brain
+|            |______policies
+|            |              _____ __init__.py
+|            |           |_____ burnout.py
+|            |           |_____context.py
+|            |           |______enforcement.py
+|            |           |______router.py
+|            |           |_______support.py
+|            |______ __init__.py
+|            |______ explanations.py
+|            |______ inputs.py
+|            |______ outputs.py
+|            |______ state_model.py
+|            |_______ strategies.py
+|_______venv
+|_______context_test.py
+|_______README.md
+|________test_brain.py
