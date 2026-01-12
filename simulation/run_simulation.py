@@ -1,3 +1,16 @@
+"""
+simulation/run_simulation.py
+
+Entry point for running AlarmSM behavioral simulations.
+
+Phase 2:
+- Executes closed-loop governance simulation
+- Prints interpretable daily output
+
+Phase 3+:
+- RETURNS simulation logs for analysis and policy evolution
+"""
+
 from governing_brain.brain import GoverningBrain
 from simulation.time_engine import TimeEngine
 from simulation.synthetic_users import SyntheticUser
@@ -6,6 +19,10 @@ from simulation.synthetic_users import SyntheticUser
 def run_basic_simulation(days: int = 7):
     """
     Runs a basic simulation with a single synthetic user.
+
+    IMPORTANT:
+    - Prints human-readable output (Phase 2)
+    - Returns simulation logs for analysis (Phase 3+)
     """
 
     print("\n" + "=" * 80)
@@ -54,16 +71,18 @@ def run_basic_simulation(days: int = 7):
         # Explainability
         print(f"Decision Rationale : {log.explanation.summary}")
 
-        # Outcome tracking (if available)
-        if hasattr(log, "alarm_triggered"):
-            print(f"Alarm Triggered    : {log.alarm_triggered}")
-            alarms_triggered += int(log.alarm_triggered)
+        # Outcome tracking — pulled from SimulationLog (NOT directive)
+        if getattr(log, "alarm_triggered", False):
+            print("Alarm Triggered    : True")
+            alarms_triggered += 1
+        else:
+            print("Alarm Triggered    : False")
 
         if log.outcome_success is not None:
             print(f"Outcome Success   : {log.outcome_success}")
             successful_outcomes += int(log.outcome_success)
 
-        total_trust += getattr(log, "trust_delta", 0.0)
+        total_trust += log.trust_delta
 
     # 6. Simulation-level summary
     print("\n" + "=" * 80)
@@ -74,6 +93,9 @@ def run_basic_simulation(days: int = 7):
     print(f"Successful Outcomes : {successful_outcomes}")
     print(f"Net Trust Change    : {total_trust:.2f}")
     print("=" * 80)
+
+    # 🔑 Critical for Phase 3+
+    return logs
 
 
 if __name__ == "__main__":
